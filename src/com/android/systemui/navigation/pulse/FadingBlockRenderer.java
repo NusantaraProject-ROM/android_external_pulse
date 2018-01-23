@@ -50,6 +50,7 @@ public class FadingBlockRenderer extends Renderer implements ColorAnimator.Color
     private int dbValue;
     private float magnitude;
     private int mDivisions;
+    private int mAccentColor;
     private int mUserColor;
     private int mAlbumColor = -1;
     private boolean mAutoColor;
@@ -65,6 +66,7 @@ public class FadingBlockRenderer extends Renderer implements ColorAnimator.Color
 
     private ColorAnimator mLavaLamp;
     private LegacySettingsObserver mObserver;
+    private boolean mPulseAccentColorEnabled;
     private boolean mLavaLampEnabled;
     private boolean mIsValidStream;
 
@@ -93,7 +95,7 @@ public class FadingBlockRenderer extends Renderer implements ColorAnimator.Color
         mIsValidStream = isValid;
         if (isValid) {
             onSizeChanged(0, 0, 0, 0);
-            if (mLavaLampEnabled) {
+            if (mLavaLampEnabled  && !mPulseAccentColorEnabled) {
                 mLavaLamp.start();
             }
         }
@@ -146,7 +148,7 @@ public class FadingBlockRenderer extends Renderer implements ColorAnimator.Color
 
     @Override
     public void onColorChanged(ColorAnimator colorAnimator, int color) {
-        mPaint.setColor(color);
+        mPaint.setColor(mPulseAccentColorEnabled ? mAccentColor : color);
     }
 
     @Override
@@ -155,7 +157,7 @@ public class FadingBlockRenderer extends Renderer implements ColorAnimator.Color
 
     @Override
     public void onStopAnimation(ColorAnimator colorAnimator, int lastColor) {
-        mPaint.setColor(mAutoColor && mAlbumColor != -1 ? mAlbumColor : mUserColor);
+        mPaint.setColor(mAutoColor && mAlbumColor != -1 ? mAlbumColor : (mPulseAccentColorEnabled ? mAccentColor : mUserColor));
     }
 
     @Override
@@ -199,6 +201,10 @@ public class FadingBlockRenderer extends Renderer implements ColorAnimator.Color
 
         void register() {
             ContentResolver resolver = mContext.getContentResolver();
+            resolver.registerContentObserver(
+                    Settings.Secure.getUriFor(Settings.Secure.PULSE_ACCENT_COLOR_ENABLED), false,
+                    this,
+                    UserHandle.USER_ALL);
             resolver.registerContentObserver(
                     Settings.Secure.getUriFor(Settings.Secure.FLING_PULSE_COLOR), false, this,
                     UserHandle.USER_ALL);
@@ -246,6 +252,9 @@ public class FadingBlockRenderer extends Renderer implements ColorAnimator.Color
                     resolver, Settings.Secure.PULSE_AUTO_COLOR, 0,
                     UserHandle.USER_CURRENT) == 1;
 
+            mPulseAccentColorEnabled = Settings.Secure.getIntForUser(resolver,
+                    Settings.Secure.PULSE_ACCENT_COLOR_ENABLED, 0, UserHandle.USER_CURRENT) == 1;
+
             mLavaLampEnabled = !mAutoColor && Settings.Secure.getIntForUser(resolver,
                     Settings.Secure.FLING_PULSE_LAVALAMP_ENABLED, 1, UserHandle.USER_CURRENT) == 1;
 
@@ -253,7 +262,13 @@ public class FadingBlockRenderer extends Renderer implements ColorAnimator.Color
                     Settings.Secure.FLING_PULSE_COLOR,
                     mContext.getResources().getColor(R.color.config_pulseFillColor),
                     UserHandle.USER_CURRENT);
-            if (!mLavaLampEnabled) {
+            mAccentColor = mContext.getResources().getColor(R.color.pulseAccentColor);
+
+            if (mPulseAccentColorEnabled) {
+                mPaint.setColor(mAccentColor);
+            }
+
+            if (!mLavaLampEnabled && !mPulseAccentColorEnabled) {
                 int lastColor = mController.getAlbumArtColor();
                 mPaint.setColor(mAutoColor && lastColor != -1 ? lastColor : mUserColor);
             }
@@ -261,7 +276,7 @@ public class FadingBlockRenderer extends Renderer implements ColorAnimator.Color
                     Settings.Secure.FLING_PULSE_LAVALAMP_SPEED, 10000,
                     UserHandle.USER_CURRENT);
             mLavaLamp.setAnimationTime(time);
-            if (mLavaLampEnabled && mIsValidStream) {
+            if (mLavaLampEnabled && mIsValidStream && !mPulseAccentColorEnabled) {
                 mLavaLamp.start();
             } else {
                 mLavaLamp.stop();
