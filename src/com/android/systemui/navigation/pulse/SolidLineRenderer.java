@@ -45,6 +45,7 @@ public class SolidLineRenderer extends Renderer implements ColorAnimator.ColorAn
     private Paint mPaint;
     private Paint mFadePaint;
     private ValueAnimator[] mValueAnimators;
+    private FFTAverage[] mFFTAverage;
     private float[] mFFTPoints;
     private int mColor;
     private int mAlbumColor = -1;
@@ -62,6 +63,7 @@ public class SolidLineRenderer extends Renderer implements ColorAnimator.ColorAn
     private boolean mIsValidStream;
     private boolean mPulseAccentColorEnabled;
     private boolean mLavaLampEnabled;
+    private boolean mSmoothingEnabled;
     private CMRendererObserver mObserver;
     private ColorAnimator mLavaLamp;
 
@@ -179,6 +181,9 @@ public class SolidLineRenderer extends Renderer implements ColorAnimator.ColorAn
             ifk = fft[i * 2 + 3];
             magnitude = rfk * rfk + ifk * ifk;
             dbValue = magnitude > 0 ? (int) (10 * Math.log10(magnitude)) : 0;
+            if (mSmoothingEnabled) {
+                dbValue = mFFTAverage[i].average(dbValue);
+            }
             if (mVertical) {
                 if (mLeftInLandscape) {
                     mValueAnimators[i].setFloatValues(mFFTPoints[i * 4],
@@ -262,6 +267,10 @@ public class SolidLineRenderer extends Renderer implements ColorAnimator.ColorAn
             resolver.registerContentObserver(
                     Settings.Secure.getUriFor(Settings.Secure.PULSE_AUTO_COLOR), false, this,
                     UserHandle.USER_ALL);
+            resolver.registerContentObserver(
+                    Settings.Secure.getUriFor(Settings.Secure.FLING_PULSE_SMOOTHING_ENABLED), false,
+                    this,
+                    UserHandle.USER_ALL);
         }
 
         @Override
@@ -309,6 +318,8 @@ public class SolidLineRenderer extends Renderer implements ColorAnimator.ColorAn
             mDbFuzzFactor = Settings.Secure.getIntForUser(
                     resolver, Settings.Secure.PULSE_SOLID_FUDGE_FACTOR, 5,
                     UserHandle.USER_CURRENT);
+            mSmoothingEnabled = Settings.Secure.getIntForUser(resolver,
+                    Settings.Secure.FLING_PULSE_SMOOTHING_ENABLED, 0, UserHandle.USER_CURRENT) == 1;
 
             int oldUnits = mUnits;
             mUnits = Settings.Secure.getIntForUser(
@@ -316,13 +327,31 @@ public class SolidLineRenderer extends Renderer implements ColorAnimator.ColorAn
                     UserHandle.USER_CURRENT);
             if (mUnits != oldUnits) {
                 mFFTPoints = new float[mUnits * 4];
+                if (mSmoothingEnabled) {
+                    setupFFTAverage();
+                }
                 onSizeChanged(0, 0, 0, 0);
+            }
+
+            if (mSmoothingEnabled) {
+                if (mFFTAverage == null) {
+                    setupFFTAverage();
+                }
+            } else {
+                mFFTAverage = null;
             }
 
             int solidUnitsColor = Settings.Secure.getIntForUser(
                     resolver, Settings.Secure.PULSE_SOLID_UNITS_OPACITY, 200,
                     UserHandle.USER_CURRENT);
             mFadePaint.setColor(Color.argb(mAutoColor ? 255 : solidUnitsColor, 255, 255, 255));
+        }
+
+        private void setupFFTAverage() {
+            mFFTAverage = new FFTAverage[mUnits];
+            for (int i = 0; i < mUnits; i++) {
+                mFFTAverage[i] = new FFTAverage();
+            }
         }
     }
 

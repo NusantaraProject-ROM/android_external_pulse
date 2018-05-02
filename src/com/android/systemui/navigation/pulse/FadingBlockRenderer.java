@@ -45,6 +45,7 @@ public class FadingBlockRenderer extends Renderer implements ColorAnimator.Color
     private Paint mFadePaint;
     private boolean mVertical;
     private boolean mLeftInLandscape;
+    private FFTAverage[] mFFTAverage;
     private float[] mFFTPoints;
     private byte rfk, ifk;
     private int dbValue;
@@ -69,6 +70,7 @@ public class FadingBlockRenderer extends Renderer implements ColorAnimator.Color
     private boolean mPulseAccentColorEnabled;
     private boolean mLavaLampEnabled;
     private boolean mIsValidStream;
+    private boolean mSmoothingEnabled;
 
     private PulseController mController;
 
@@ -108,7 +110,15 @@ public class FadingBlockRenderer extends Renderer implements ColorAnimator.Color
             if (mFFTPoints == null || mFFTPoints.length < mFFTBytes.length * 4) {
                 mFFTPoints = new float[mFFTBytes.length * 4];
             }
-            for (int i = 0; i < mFFTBytes.length / mDivisions; i++) {
+            int divisionLength = mFFTBytes.length / mDivisions;
+            if (mSmoothingEnabled) {
+                if (mFFTAverage == null || mFFTAverage.length != divisionLength) {
+                    setupFFTAverage(divisionLength);
+                }
+            } else {
+                mFFTAverage = null;
+            }
+            for (int i = 0; i < divisionLength; i++) {
                 if (mVertical) {
                     mFFTPoints[i * 4 + 1] = i * 4 * mDivisions;
                     mFFTPoints[i * 4 + 3] = i * 4 * mDivisions;
@@ -120,6 +130,9 @@ public class FadingBlockRenderer extends Renderer implements ColorAnimator.Color
                 ifk = mFFTBytes[mDivisions * i + 1];
                 magnitude = (rfk * rfk + ifk * ifk);
                 dbValue = magnitude > 0 ? (int) (10 * Math.log10(magnitude)) : 0;
+                if (mSmoothingEnabled) {
+                    dbValue = mFFTAverage[i].average(dbValue);
+                }
                 if (mVertical) {
                     mFFTPoints[i * 4] = mLeftInLandscape ? 0 : mWidth;
                     mFFTPoints[i * 4 + 2] = mLeftInLandscape ? (dbValue * mDbFuzzFactor + mDbFuzz)
@@ -133,6 +146,13 @@ public class FadingBlockRenderer extends Renderer implements ColorAnimator.Color
         mCanvas.drawLines(mFFTPoints, mPaint);
         mCanvas.drawPaint(mFadePaint);
         postInvalidate();
+    }
+
+    private void setupFFTAverage(int size) {
+        mFFTAverage = new FFTAverage[size];
+        for (int i = 0; i < size; i++) {
+            mFFTAverage[i] = new FFTAverage();
+        }
     }
 
     @Override
@@ -237,6 +257,10 @@ public class FadingBlockRenderer extends Renderer implements ColorAnimator.Color
                     Settings.Secure.getUriFor(Settings.Secure.PULSE_AUTO_COLOR), false,
                     this,
                     UserHandle.USER_ALL);
+            resolver.registerContentObserver(
+                    Settings.Secure.getUriFor(Settings.Secure.FLING_PULSE_SMOOTHING_ENABLED), false,
+                    this,
+                    UserHandle.USER_ALL);
         }
 
         @Override
@@ -307,6 +331,9 @@ public class FadingBlockRenderer extends Renderer implements ColorAnimator.Color
             mPaint.setStrokeWidth(getLimitedDimenValue(customDimen, 1, 30, res));
             mDivisions = validateDivision(numDivision);
             mDbFuzzFactor = Math.max(2, Math.min(6, fudgeFactor));
+
+            mSmoothingEnabled = Settings.Secure.getIntForUser(resolver,
+                    Settings.Secure.FLING_PULSE_SMOOTHING_ENABLED, 0, UserHandle.USER_CURRENT) == 1;
         }
     }
 
