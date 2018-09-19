@@ -33,12 +33,12 @@ import java.util.Set;
 
 import com.android.systemui.navigation.fling.FlingGestureHandler.Swipeable;
 import com.android.systemui.navigation.utils.SmartObserver.SmartObservable;
-import com.android.internal.utils.du.ActionConstants;
-import com.android.internal.utils.du.ActionHandler;
-import com.android.internal.utils.du.Config;
-import com.android.internal.utils.du.ActionConstants.ConfigMap;
-import com.android.internal.utils.du.Config.ActionConfig;
-import com.android.internal.utils.du.Config.ButtonConfig;
+import com.android.internal.utils.ActionConstants;
+import com.android.internal.utils.ActionHandler;
+import com.android.internal.utils.Config;
+import com.android.internal.utils.ActionConstants.ConfigMap;
+import com.android.internal.utils.Config.ActionConfig;
+import com.android.internal.utils.Config.ButtonConfig;
 
 import android.content.Context;
 import android.net.Uri;
@@ -255,11 +255,7 @@ public class FlingActionHandler implements Swipeable, SmartObservable {
                 .get(ActionConstants.Fling.LONG_LEFT_PRESS_TAG);
         ActionConfig right_long = (ActionConfig) mActionMap
                 .get(ActionConstants.Fling.LONG_RIGHT_PRESS_TAG);
-        if (ActionHandler.isLockTaskOn()) {
-            ActionHandler.turnOffLockTask();
-        } else {
-            fireAction(!left_long.hasNoAction() ? left_long : right_long);
-        }
+        fireAction(!left_long.hasNoAction() ? left_long : right_long);
     }
 
     @Override
@@ -274,11 +270,7 @@ public class FlingActionHandler implements Swipeable, SmartObservable {
                 .get(ActionConstants.Fling.LONG_RIGHT_PRESS_TAG);
         ActionConfig left_long = (ActionConfig) mActionMap
                 .get(ActionConstants.Fling.LONG_LEFT_PRESS_TAG);
-        if (ActionHandler.isLockTaskOn()) {
-            ActionHandler.turnOffLockTask();
-        } else {
-            fireAction(!right_long.hasNoAction() ? right_long : left_long);
-        }
+        fireAction(!right_long.hasNoAction() ? right_long : left_long);
     }
 
     private void moveKbCursor(boolean right, boolean firstTrigger) {

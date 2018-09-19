@@ -24,8 +24,6 @@
 package com.android.systemui.navigation.fling;
 
 import android.content.Context;
-import android.graphics.PorterDuff.Mode;
-import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.widget.ImageView;

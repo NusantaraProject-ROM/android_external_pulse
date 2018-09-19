@@ -26,16 +26,19 @@ package com.android.systemui.navigation;
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
 
-import com.android.systemui.RecentsComponent;
 import com.android.systemui.navigation.NavbarOverlayResources;
 import com.android.systemui.navigation.pulse.PulseController;
 import com.android.systemui.plugins.PluginListener;
 import com.android.systemui.plugins.statusbar.phone.NavGesture;
+import com.android.systemui.recents.Recents;
 import com.android.systemui.stackdivider.Divider;
 import com.android.systemui.statusbar.phone.BarTransitions;
 import com.android.systemui.statusbar.phone.ButtonDispatcher;
 import com.android.systemui.statusbar.phone.LightBarTransitionsController;
+import com.android.systemui.statusbar.phone.NotificationPanelView;
+import com.android.systemui.statusbar.policy.KeyButtonDrawable;
 
+import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.view.View;
@@ -52,7 +55,7 @@ public interface Navigator extends PluginListener<NavGesture> {
      */
     public BarTransitions getBarTransitions();
     public default LightBarTransitionsController getLightTransitionsController() { return null; }
-    public default void setComponents(RecentsComponent recentsComponent, Divider divider) {}
+    public default void setComponents(Recents recents, Divider divider, NotificationPanelView panel) {}
     public default void setOnVerticalChangedListener(OnVerticalChangedListener onVerticalChangedListener) {}
     public default void abortCurrentGesture() {}
     public default void notifyScreenOn() {}
@@ -75,6 +78,21 @@ public interface Navigator extends PluginListener<NavGesture> {
     public default void setMediaPlaying(boolean playing) {}
     public default void setNotificationPanelExpanded(boolean expanded) {}
     public default void setPulseColors(boolean colorizedMedia, int[] colors) {}
+
+    /*
+     * Introduced in Pie
+     */
+    public default void updateStates(){}
+    public default void onPanelExpandedChange(boolean expanded) {}
+    public default int setRotateButtonVisibility(boolean visible) { return View.GONE; }
+    public default boolean isRotateButtonVisible() { return false; }
+    public default void updateRotateSuggestionButtonStyle (int style, boolean setIcon) {}
+    public default ButtonDispatcher getRotateSuggestionButton() { return null; }
+    public default boolean isRecentsButtonVisible() { return true; }
+    public default void updateNavButtonIcons() {};
+    public default void onNavigationButtonLongPress(View v) {};
+    public default KeyButtonDrawable getBackDrawable(Context lightContext, Context darkContext) { return null; }
+    public default KeyButtonDrawable getHomeDrawable(Context lightContext, Context darkContext) { return null; }
 
     /*
      * DUI additional methods to support additional winning ;D

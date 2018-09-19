@@ -29,7 +29,7 @@ import java.util.Set;
 
 import com.android.systemui.navigation.fling.FlingGestureDetector.OnGestureListener;
 import com.android.systemui.navigation.utils.SmartObserver.SmartObservable;
-import com.android.internal.utils.du.DUActionUtils;
+import com.android.internal.utils.ActionUtils;
 
 import android.content.ContentResolver;
 import android.content.Context;
@@ -374,7 +374,7 @@ public class FlingGestureHandler implements OnGestureListener, SmartObservable {
         void process(MotionEvent start, MotionEvent end) {
             // bar and device states
             final boolean isNavbarHorizontal = isHorizontal();
-            final boolean isLandscape = DUActionUtils.isLandscape(mContext);
+            final boolean isLandscape = ActionUtils.isLandscape(mContext);
             final float xStart = start.getX();
             final float yStart = start.getY();
             final float xDist = end.getX() - xStart;

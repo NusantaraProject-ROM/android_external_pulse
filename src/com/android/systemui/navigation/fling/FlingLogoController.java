@@ -34,9 +34,9 @@ import com.android.systemui.navigation.fling.FlingLogoView;
 import com.android.systemui.navigation.fling.FlingView;
 import com.android.systemui.navigation.utils.SmartObserver.SmartObservable;
 import com.android.systemui.statusbar.policy.KeyButtonDrawable;
-import com.android.internal.utils.du.Config.ActionConfig;
-import com.android.internal.utils.du.Config.ButtonConfig;
-import com.android.internal.utils.du.DUActionUtils;
+import com.android.internal.utils.Config.ActionConfig;
+import com.android.internal.utils.Config.ButtonConfig;
+import com.android.internal.utils.ActionUtils;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -255,12 +255,12 @@ public class FlingLogoController implements SmartObservable {
             light = getBitmapDrawable(mContext, getConfigCustomIcon()).mutate();
             dark = getBitmapDrawable(mContext, getConfigCustomIcon()).mutate();
             dark.setColorFilter(new PorterDuffColorFilter(0x4D353535, PorterDuff.Mode.SRC_ATOP));
-            d = KeyButtonDrawable.create(light, dark);
+            d = KeyButtonDrawable.create(mContext, light, dark, false);
             return d;
         }
         light = mHost.mResourceMap.mFlingLogo;
         dark = mHost.mResourceMap.mFlingLogoDark;
-        d = KeyButtonDrawable.create(light, dark);
+        d = KeyButtonDrawable.create(mContext, light, dark, false);
         return d;
     }
 

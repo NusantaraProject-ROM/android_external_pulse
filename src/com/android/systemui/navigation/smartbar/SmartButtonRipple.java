@@ -33,7 +33,7 @@ import android.view.View;
 import android.view.animation.Interpolator;
 import android.view.animation.PathInterpolator;
 
-import com.android.internal.utils.du.DUActionUtils;
+import com.android.internal.utils.ActionUtils;
 import com.android.systemui.R;
 import com.android.systemui.navigation.DarkIntensity;
 

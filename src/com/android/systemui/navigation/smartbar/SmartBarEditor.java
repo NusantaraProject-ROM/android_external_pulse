@@ -26,14 +26,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 
-import com.android.internal.utils.du.ActionConstants;
-import com.android.internal.utils.du.ActionHandler;
-import com.android.internal.utils.du.Config.ActionConfig;
-import com.android.internal.utils.du.DUActionUtils;
-import com.android.internal.utils.du.Config;
-import com.android.internal.utils.du.Config.ButtonConfig;
+import com.android.internal.utils.ActionConstants;
+import com.android.internal.utils.ActionHandler;
+import com.android.internal.utils.Config.ActionConfig;
+import com.android.internal.utils.ActionUtils;
+import com.android.internal.utils.Config;
+import com.android.internal.utils.Config.ButtonConfig;
 import com.android.systemui.navigation.BaseEditor;
 import com.android.systemui.navigation.BaseNavigationBar;
 import com.android.systemui.navigation.OpaLayout;
@@ -161,15 +160,15 @@ public class SmartBarEditor extends BaseEditor implements View.OnTouchListener {
                     case MENU_MAP_ICON_ICON_PACK:
                         intent = new Intent();
                         intent.setAction(Intent.ACTION_MAIN);
-                        intent.setClassName(INTENT_ACTION_EDIT_CLASS,
-                                INTENT_ACTION_ICON_PICKER_COMPONENT);
+                        intent.setClassName(ActionUtils.PACKAGE_SETTINGS,
+                                ActionUtils.CLASS_NAME_ICON_PICKER_ACTIVITY);
                         mContext.startActivityAsUser(intent, UserHandle.CURRENT);
                         break;
                     case MENU_MAP_ICON_ICON_GALLERY:
                         intent = new Intent();
                         intent.setAction(Intent.ACTION_MAIN);
-                        intent.setClassName(INTENT_ACTION_EDIT_CLASS,
-                                INTENT_ACTION_GALLERY_PICKER_COMPONENT);
+                        intent.setClassName(ActionUtils.PACKAGE_SETTINGS,
+                                ActionUtils.CLASS_NAME_GALLERY_PICKER);
                         mContext.startActivityAsUser(intent, UserHandle.CURRENT);
                         break;
                     case MENU_MAP_ICON_ICON_COLOR:
@@ -363,7 +362,7 @@ public class SmartBarEditor extends BaseEditor implements View.OnTouchListener {
         mTapHasFocusTag = focusActionTap;
         Intent intent = new Intent();
         intent.setAction(Intent.ACTION_MAIN);
-        intent.setClassName(INTENT_ACTION_EDIT_CLASS, INTENT_ACTION_EDIT_COMPONENT);
+        intent.setClassName(ActionUtils.PACKAGE_SETTINGS, ActionUtils.CLASS_NAME_ACTION_EDIT);
         if (mTapHasFocusTag == ActionConfig.PRIMARY) { // exclude single tap back, home, recent
             String[] exclude = {
                     ActionHandler.SYSTEMUI_TASK_BACK,
@@ -697,100 +696,100 @@ public class SmartBarEditor extends BaseEditor implements View.OnTouchListener {
     private void loadPrimaryMenuMap() {
         mPrimaryMenuItems.clear();
         ActionItem action = new ActionItem(1,
-                DUActionUtils.getString(mHost.getContext(), "label_smartbar_actions",
-                        DUActionUtils.PACKAGE_SYSTEMUI),
-                DUActionUtils.getDrawable(mHost.getContext(), "ic_smartbar_editor_actions",
-                        DUActionUtils.PACKAGE_SYSTEMUI));
+                ActionUtils.getString(mHost.getContext(), "label_smartbar_actions",
+                        ActionUtils.PACKAGE_SYSTEMUI),
+                ActionUtils.getDrawable(mHost.getContext(), "ic_smartbar_editor_actions",
+                        ActionUtils.PACKAGE_SYSTEMUI));
         mPrimaryMenuItems.put(1, action);
 
         action = new ActionItem(2,
-                DUActionUtils.getString(mHost.getContext(), "label_smartbar_icon",
-                        DUActionUtils.PACKAGE_SYSTEMUI),
-                DUActionUtils.getDrawable(mHost.getContext(), "ic_smartbar_editor_icon",
-                        DUActionUtils.PACKAGE_SYSTEMUI));
+                ActionUtils.getString(mHost.getContext(), "label_smartbar_icon",
+                        ActionUtils.PACKAGE_SYSTEMUI),
+                ActionUtils.getDrawable(mHost.getContext(), "ic_smartbar_editor_icon",
+                        ActionUtils.PACKAGE_SYSTEMUI));
         mPrimaryMenuItems.put(2, action);
 
         action = new ActionItem(3,
-                DUActionUtils.getString(mHost.getContext(), "label_smartbar_add",
-                        DUActionUtils.PACKAGE_SYSTEMUI),
-                DUActionUtils.getDrawable(mHost.getContext(), "ic_smartbar_editor_add",
-                        DUActionUtils.PACKAGE_SYSTEMUI));
+                ActionUtils.getString(mHost.getContext(), "label_smartbar_add",
+                        ActionUtils.PACKAGE_SYSTEMUI),
+                ActionUtils.getDrawable(mHost.getContext(), "ic_smartbar_editor_add",
+                        ActionUtils.PACKAGE_SYSTEMUI));
         mPrimaryMenuItems.put(3, action);
 
         action = new ActionItem(4,
-                DUActionUtils.getString(mHost.getContext(), "label_smartbar_remove",
-                        DUActionUtils.PACKAGE_SYSTEMUI),
-                DUActionUtils.getDrawable(mHost.getContext(), "ic_smartbar_editor_remove",
-                        DUActionUtils.PACKAGE_SYSTEMUI));
+                ActionUtils.getString(mHost.getContext(), "label_smartbar_remove",
+                        ActionUtils.PACKAGE_SYSTEMUI),
+                ActionUtils.getDrawable(mHost.getContext(), "ic_smartbar_editor_remove",
+                        ActionUtils.PACKAGE_SYSTEMUI));
         mPrimaryMenuItems.put(4, action);
 
         action = new ActionItem(5,
-                DUActionUtils.getString(mHost.getContext(), "label_smartbar_cancel",
-                        DUActionUtils.PACKAGE_SYSTEMUI),
-                DUActionUtils.getDrawable(mHost.getContext(), "ic_smartbar_editor_cancel",
-                        DUActionUtils.PACKAGE_SYSTEMUI));
+                ActionUtils.getString(mHost.getContext(), "label_smartbar_cancel",
+                        ActionUtils.PACKAGE_SYSTEMUI),
+                ActionUtils.getDrawable(mHost.getContext(), "ic_smartbar_editor_cancel",
+                        ActionUtils.PACKAGE_SYSTEMUI));
         mPrimaryMenuItems.put(5, action);
 
         action = new ActionItem(6,
-                DUActionUtils.getString(mHost.getContext(), "label_smartbar_finish",
-                        DUActionUtils.PACKAGE_SYSTEMUI),
-                DUActionUtils.getDrawable(mHost.getContext(), "ic_smartbar_editor_finish",
-                        DUActionUtils.PACKAGE_SYSTEMUI));
+                ActionUtils.getString(mHost.getContext(), "label_smartbar_finish",
+                        ActionUtils.PACKAGE_SYSTEMUI),
+                ActionUtils.getDrawable(mHost.getContext(), "ic_smartbar_editor_finish",
+                        ActionUtils.PACKAGE_SYSTEMUI));
         mPrimaryMenuItems.put(6, action);
     }
 
     private void loadTapMenuMap() {
         mTapMenuItems.clear();
         ActionItem action = new ActionItem(7,
-                DUActionUtils.getString(mHost.getContext(), "label_smartbar_single_tap",
-                        DUActionUtils.PACKAGE_SYSTEMUI),
-                DUActionUtils.getDrawable(mHost.getContext(), "ic_smartbar_editor_single_tap",
-                        DUActionUtils.PACKAGE_SYSTEMUI));
+                ActionUtils.getString(mHost.getContext(), "label_smartbar_single_tap",
+                        ActionUtils.PACKAGE_SYSTEMUI),
+                ActionUtils.getDrawable(mHost.getContext(), "ic_smartbar_editor_single_tap",
+                        ActionUtils.PACKAGE_SYSTEMUI));
         mTapMenuItems.put(1, action);
 
         action = new ActionItem(8,
-                DUActionUtils.getString(mHost.getContext(), "label_smartbar_double_tap",
-                        DUActionUtils.PACKAGE_SYSTEMUI),
-                DUActionUtils.getDrawable(mHost.getContext(), "ic_smartbar_editor_double_tap",
-                        DUActionUtils.PACKAGE_SYSTEMUI));
+                ActionUtils.getString(mHost.getContext(), "label_smartbar_double_tap",
+                        ActionUtils.PACKAGE_SYSTEMUI),
+                ActionUtils.getDrawable(mHost.getContext(), "ic_smartbar_editor_double_tap",
+                        ActionUtils.PACKAGE_SYSTEMUI));
         mTapMenuItems.put(2, action);
 
         action = new ActionItem(9,
-                DUActionUtils.getString(mHost.getContext(), "label_smartbar_long_press",
-                        DUActionUtils.PACKAGE_SYSTEMUI),
-                DUActionUtils.getDrawable(mHost.getContext(), "ic_smartbar_editor_long_press",
-                        DUActionUtils.PACKAGE_SYSTEMUI));
+                ActionUtils.getString(mHost.getContext(), "label_smartbar_long_press",
+                        ActionUtils.PACKAGE_SYSTEMUI),
+                ActionUtils.getDrawable(mHost.getContext(), "ic_smartbar_editor_long_press",
+                        ActionUtils.PACKAGE_SYSTEMUI));
         mTapMenuItems.put(3, action);
     }
 
     private void loadIconMenuMap() {
         mIconMenuItems.clear();
         ActionItem action = new ActionItem(10,
-                DUActionUtils.getString(mHost.getContext(), "label_smartbar_icon_pack",
-                        DUActionUtils.PACKAGE_SYSTEMUI),
-                DUActionUtils.getDrawable(mHost.getContext(), "ic_smartbar_editor_icon_pack",
-                        DUActionUtils.PACKAGE_SYSTEMUI));
+                ActionUtils.getString(mHost.getContext(), "label_smartbar_icon_pack",
+                        ActionUtils.PACKAGE_SYSTEMUI),
+                ActionUtils.getDrawable(mHost.getContext(), "ic_smartbar_editor_icon_pack",
+                        ActionUtils.PACKAGE_SYSTEMUI));
         mIconMenuItems.put(1, action);
 
         action = new ActionItem(11,
-                DUActionUtils.getString(mHost.getContext(), "label_smartbar_icon_gallery",
-                        DUActionUtils.PACKAGE_SYSTEMUI),
-                DUActionUtils.getDrawable(mHost.getContext(), "ic_smartbar_editor_icon_gallery",
-                        DUActionUtils.PACKAGE_SYSTEMUI));
+                ActionUtils.getString(mHost.getContext(), "label_smartbar_icon_gallery",
+                        ActionUtils.PACKAGE_SYSTEMUI),
+                ActionUtils.getDrawable(mHost.getContext(), "ic_smartbar_editor_icon_gallery",
+                        ActionUtils.PACKAGE_SYSTEMUI));
         mIconMenuItems.put(2, action);
 
         action = new ActionItem(12,
-                DUActionUtils.getString(mHost.getContext(), "label_smartbar_icon_color",
-                        DUActionUtils.PACKAGE_SYSTEMUI),
-                DUActionUtils.getDrawable(mHost.getContext(), "ic_smartbar_editor_icon_color",
-                        DUActionUtils.PACKAGE_SYSTEMUI));
+                ActionUtils.getString(mHost.getContext(), "label_smartbar_icon_color",
+                        ActionUtils.PACKAGE_SYSTEMUI),
+                ActionUtils.getDrawable(mHost.getContext(), "ic_smartbar_editor_icon_color",
+                        ActionUtils.PACKAGE_SYSTEMUI));
         mIconMenuItems.put(3, action);
 
         action = new ActionItem(13,
-                DUActionUtils.getString(mHost.getContext(), "label_smartbar_icon_reset",
-                        DUActionUtils.PACKAGE_SYSTEMUI),
-                DUActionUtils.getDrawable(mHost.getContext(), "ic_smartbar_editor_icon_reset",
-                        DUActionUtils.PACKAGE_SYSTEMUI));
+                ActionUtils.getString(mHost.getContext(), "label_smartbar_icon_reset",
+                        ActionUtils.PACKAGE_SYSTEMUI),
+                ActionUtils.getDrawable(mHost.getContext(), "ic_smartbar_editor_icon_reset",
+                        ActionUtils.PACKAGE_SYSTEMUI));
         mIconMenuItems.put(3, action);
     }
 

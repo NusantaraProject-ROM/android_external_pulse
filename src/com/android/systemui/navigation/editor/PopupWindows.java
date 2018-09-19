@@ -1,10 +1,8 @@
 
 package com.android.systemui.navigation.editor;
 
-import com.android.internal.utils.du.DUActionUtils;
 
 import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 
 import android.view.LayoutInflater;

@@ -21,7 +21,7 @@
 
 package com.android.systemui.navigation;
 
-import com.android.internal.utils.du.ActionHandler.ActionIconResources;
+import com.android.internal.utils.ActionHandler.ActionIconResources;
 import com.android.systemui.R;
 import com.android.systemui.navigation.NavbarOverlayResources;
 

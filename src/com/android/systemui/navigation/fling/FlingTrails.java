@@ -23,7 +23,7 @@
 
 package com.android.systemui.navigation.fling;
 
-import com.android.internal.utils.du.DUActionUtils;
+import com.android.internal.utils.ActionUtils;
 import com.orange.dgil.trail.android.AndroidMetrics;
 import com.orange.dgil.trail.android.animation.IAnimListener;
 import com.orange.dgil.trail.android.impl.TrailDrawer;
@@ -90,7 +90,7 @@ public class FlingTrails implements View.OnTouchListener, IAnimListener {
 
     public void setTrailWidth(int dp) {
         mTrailDrawer.clear();
-        int px = DUActionUtils.ConvertDpToPixelAsInt(validateTrailWidthRange(dp), mHost.getContext());
+        int px = ActionUtils.ConvertDpToPixelAsInt(validateTrailWidthRange(dp), mHost.getContext());
         int microns = AndroidMetrics.get(mHost.getContext()).pixelsToMicrometers(px);
         mTrailDrawer.getTrailOptions().setTrailWidthMicrometers(microns);
     }

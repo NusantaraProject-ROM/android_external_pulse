@@ -42,7 +42,7 @@ import com.android.systemui.navigation.utils.SmartObserver.SmartObservable;
 import com.android.systemui.statusbar.phone.BarTransitions;
 import com.android.systemui.statusbar.phone.LightBarTransitionsController;
 import com.android.systemui.statusbar.phone.StatusBar;
-import com.android.internal.utils.du.ActionConstants;
+import com.android.internal.utils.ActionConstants;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;

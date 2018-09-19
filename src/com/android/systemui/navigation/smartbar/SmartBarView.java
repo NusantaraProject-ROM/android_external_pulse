@@ -52,12 +52,12 @@ import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
 import android.widget.LinearLayout;
 
-import com.android.internal.utils.du.ActionConstants;
-import com.android.internal.utils.du.ActionHandler;
-import com.android.internal.utils.du.DUActionUtils;
-import com.android.internal.utils.du.Config;
-import com.android.internal.utils.du.Config.ActionConfig;
-import com.android.internal.utils.du.Config.ButtonConfig;
+import com.android.internal.utils.ActionConstants;
+import com.android.internal.utils.ActionHandler;
+import com.android.internal.utils.ActionUtils;
+import com.android.internal.utils.Config;
+import com.android.internal.utils.Config.ActionConfig;
+import com.android.internal.utils.Config.ButtonConfig;
 import com.android.systemui.navigation.BaseEditor;
 import com.android.systemui.navigation.BaseNavigationBar;
 import com.android.systemui.navigation.Editor;
@@ -309,7 +309,7 @@ public class SmartBarView extends BaseNavigationBar {
     }
 
     public void updateCurrentIcons() {
-        for (SmartButtonView button : DUActionUtils.getAllChildren(this, SmartButtonView.class)) {
+        for (SmartButtonView button : ActionUtils.getAllChildren(this, SmartButtonView.class)) {
             setButtonDrawable(button);
         }
     }
@@ -333,7 +333,7 @@ public class SmartBarView extends BaseNavigationBar {
                     bd.setImeVisible(backAlt);
                     button.setImageDrawable(bd);
                 } else {
-                    d = KeyButtonDrawable.create(light, dark);
+                    d = KeyButtonDrawable.create(mContext, light, dark, false);
                     button.setImageDrawable(d);
                 }
             } else {
@@ -345,7 +345,7 @@ public class SmartBarView extends BaseNavigationBar {
                     bd.setImeVisible(backAlt);
                     button.setImageDrawable(bd);
                 } else {
-                    d = KeyButtonDrawable.create(light, dark);
+                    d = KeyButtonDrawable.create(mContext, light, dark, false);
                     button.setImageDrawable(d);
                 }
             }
