@@ -319,7 +319,7 @@ public class FadingBlockRenderer extends Renderer implements ColorAnimator.Color
             mAlbumColor = -1;
         }
         if (mAutoColor && !mLavaLampEnabled) {
-            mPaint.setColor(mAlbumColor != 1 ? mAlbumColor : mUserColor);
+            mPaint.setColor(mAlbumColor != -1 ? mAlbumColor : mUserColor);
             mController.setLastColor(mAlbumColor);
         }
     }

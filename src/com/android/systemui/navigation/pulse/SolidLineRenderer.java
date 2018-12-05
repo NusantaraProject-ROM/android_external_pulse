@@ -319,7 +319,7 @@ public class SolidLineRenderer extends Renderer implements ColorAnimator.ColorAn
             mAlbumColor = -1;
         }
         if (mAutoColor && !mLavaLampEnabled) {
-            mPaint.setColor(mAlbumColor != 1 ? mAlbumColor : mColor);
+            mPaint.setColor(mAlbumColor != -1 ? mAlbumColor : mColor);
             mController.setLastColor(mAlbumColor);
         }
     }
