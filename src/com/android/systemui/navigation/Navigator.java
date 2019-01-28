@@ -95,6 +95,11 @@ public interface Navigator extends PluginListener<NavGesture> {
     public default KeyButtonDrawable getHomeDrawable(Context lightContext, Context darkContext) { return null; }
 
     /*
+     * Introduced by @ezio84 ;D for stock navbar customizations
+     */
+    public default void setFullGestureMode(boolean fullGestureMode) {}
+
+    /*
      * DUI additional methods to support additional winning ;D
      */
     // Return a top level view of implementation. A time may come where not everything that implements
