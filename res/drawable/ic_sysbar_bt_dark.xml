@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--  Copyright (C) 2017 The Dirty Unicorns Project
+<!--
+     Copyright (C) 2019 AquariOS
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
      You may obtain a copy of the License at
-
-          http://www.apache.org/licenses/LICENSE-2.0
-
+         http://www.apache.org/licenses/LICENSE-2.0
      Unless required by applicable law or agreed to in writing, software
      distributed under the License is distributed on an "AS IS" BASIS,
      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -14,18 +13,11 @@
      limitations under the License.
 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-        android:width="30.0dp"
-        android:height="30.0dp"
-        android:viewportWidth="96.0"
-        android:viewportHeight="96.0">
-
-    <group>
-        <path
-            android:fillColor="@color/icon_color_dark"
-            android:pathData="M70.7,58.5L70.7,58.5L70.7,58.5c-0.1,0-0.1-0.1-0.2-0.1l-12.5-7l-1.1-0.6C55.8,50.3,55,49.3,55,48
-c0-1.1,0.7-2.1,1.6-2.6l1-0.5l0.4-0.2l12.5-7c0.1,0,0.1-0.1,0.2-0.1l0,0v0C71.5,36.9,72,36,72,35s-0.5-1.9-1.3-2.5v0l0,0
-c-0.2-0.2-0.5-0.3-0.7-0.4L46.1,20.6l0,0C45.5,20.2,44.8,20,44,20c-2.2,0-4,1.8-4,4v13.7L32,33c-1.9-1.1-4.4-0.5-5.5,1.5l-2,3.5
-c-1.1,1.9-0.5,4.4,1.5,5.5l7.9,4.6L26,52.6c-1.9,1.1-2.6,3.6-1.5,5.5l2,3.5c1.1,1.9,3.6,2.6,5.5,1.5l8-4.6V72c0,2.2,1.8,4,4,4
-c0.8,0,1.5-0.2,2.1-0.6l0,0L70,63.8c0.3-0.1,0.5-0.2,0.7-0.4h0C71.5,62.9,72,62,72,61S71.5,59.1,70.7,58.5z" />
-    </group>
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:width="30dp"
+    android:height="30dp">
+    <path
+        android:pathData="M7.7 7.8C7 8.4 7.1 8.4 7.2 8.5l3.7 3.1c0 0 0.1 0.1 0.1 0.3l0 0c0 0.2 -0.1 0.3 -0.1 0.3s-3.6 3.1 -3.7 3.1c0 0 -0.2 0.1 0.4 0.7c0.7 0.6 0.8 0.4 0.8 0.4l2.8 -2.4l0 0l0 0c0.1 -0.1 0.4 -0.4 0.4 -0.1s0 5.5 0 5.6l0 0v0.1c0 0.2 0.2 0.4 0.4 0.4c0.1 0 0.2 0 0.3 -0.1l0 0c0 0 4.8 -4.1 5 -4.3c0.2 -0.2 0.2 -0.4 0 -0.5L14 12.3c0 0 -0.2 -0.2 -0.2 -0.3c0 -0.1 0.2 -0.3 0.2 -0.3l3.4 -2.9c0.1 -0.1 0.1 -0.4 0 -0.5c-0.2 -0.2 -5 -4.3 -5 -4.3l0 0C12.3 4 12.2 4 12.1 4c-0.2 0 -0.4 0.2 -0.4 0.4v0.1l0 0c0 0.2 0 5.4 0 5.6c0 0.3 -0.3 0 -0.4 -0.1l0 0l0 0L8.4 7.4C8.3 7.3 8.2 7.2 7.7 7.8zM13.3 6.9c0 -0.2 0.3 0.1 0.4 0.2L15 8.2c0.1 0.1 0.1 0.2 0.1 0.3c0 0.1 0 0.2 -0.1 0.3c-0.1 0.1 -1.2 1.1 -1.2 1.1c-0.1 0.1 -0.4 0.4 -0.4 0.1C13.3 9.8 13.3 7.2 13.3 6.9zM13.3 14c0 -0.3 0.3 0 0.4 0.1c0 0 1.2 1 1.2 1.1c0.1 0.1 0.1 0.2 0.1 0.3s0 0.2 -0.1 0.3l-1.2 1.1c-0.1 0.1 -0.4 0.4 -0.4 0.2C13.3 16.5 13.3 14 13.3 14z"
+        android:fillColor="@color/icon_color_dark" />
 </vector>
