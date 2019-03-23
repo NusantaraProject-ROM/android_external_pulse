@@ -185,6 +185,7 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
         filter.addAction(PowerManager.ACTION_POWER_SAVE_MODE_CHANGING);
         filter.addAction(Intent.ACTION_SCREEN_ON);
         filter.addAction(Intent.ACTION_SCREEN_OFF);
+        filter.addAction(Intent.ACTION_BOOT_COMPLETED);
         context.registerReceiver(mReceiver, filter);
     }
 

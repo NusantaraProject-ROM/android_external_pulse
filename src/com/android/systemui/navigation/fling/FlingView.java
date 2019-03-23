@@ -48,6 +48,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.app.StatusBarManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -185,6 +186,13 @@ public class FlingView extends BaseNavigationBar {
         mSmartObserver.addListener(mGestureHandler);
         mSmartObserver.addListener(mLogoController);
         mSmartObserver.addListener(mObservable);
+    }
+
+    @Override
+    public void onReceive(Intent intent) {
+        if (intent.getAction().equals(Intent.ACTION_BOOT_COMPLETED)) {
+            mLogoController.setLogoIcon();
+        }
     }
 
     @Override

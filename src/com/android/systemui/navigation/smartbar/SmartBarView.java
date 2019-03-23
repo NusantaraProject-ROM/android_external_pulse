@@ -177,6 +177,11 @@ public class SmartBarView extends BaseNavigationBar {
                     });
                 }
             }
+        } else if (intent.getAction().equals(Intent.ACTION_BOOT_COMPLETED)) {
+            // outlier case where icons from storage may not have loaded because
+            // view was inflated before device was decrypted
+            // TODO: get a callback from somewhere when device is decrypted and reload
+            recreateLayouts();
         }
     }
 
