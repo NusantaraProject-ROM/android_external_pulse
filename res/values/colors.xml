@@ -65,6 +65,7 @@
     <color name="icon_color_sound_search">@color/icon_color_default</color>
     <color name="icon_color_play_pause">@color/icon_color_default</color>
     <color name="icon_color_ring_vibe_silent">@color/icon_color_default</color>
+    <color name="icon_color_camera">@color/icon_color_default</color>
 
     <!-- Navigation button ripple color -->
     <color name="navbutton_ripple_color">#FFFFFFFF</color>

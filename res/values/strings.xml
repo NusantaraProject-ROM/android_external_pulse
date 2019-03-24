@@ -58,6 +58,7 @@
     <string name="label_action_assistant_sound_search">Google sound search</string>
     <string name="label_action_play_pause">Play/Pause media</string>
     <string name="label_action_ring_vibe_silent">Ringer/Vibrate/Silent</string>
+    <string name="label_action_camera">Camera</string>
 
     <!-- Smartbar -->
     <string name="label_smartbar_actions">Actions</string>
