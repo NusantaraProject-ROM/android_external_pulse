@@ -190,6 +190,7 @@ public class FlingView extends BaseNavigationBar {
 
     @Override
     public void onReceive(Intent intent) {
+        super.onReceive(intent);
         if (intent.getAction().equals(Intent.ACTION_BOOT_COMPLETED)) {
             mLogoController.setLogoIcon();
         }

@@ -39,6 +39,7 @@ import com.android.systemui.statusbar.phone.NotificationPanelView;
 import com.android.systemui.statusbar.policy.KeyButtonDrawable;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.view.View;
@@ -150,4 +151,7 @@ public interface Navigator extends PluginListener<NavGesture> {
 
     // get our editor and pipe commands directly to it
     public default Editor getEditor() { return null; }
+
+    // allow implementations to parse intents from receiver in fragment
+    public default void onReceive(Intent intent) {}
 }

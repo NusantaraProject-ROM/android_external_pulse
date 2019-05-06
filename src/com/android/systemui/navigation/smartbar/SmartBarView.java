@@ -161,6 +161,7 @@ public class SmartBarView extends BaseNavigationBar {
 
     @Override
     public void onReceive(Intent intent) {
+        super.onReceive(intent);
         if (AudioManager.STREAM_MUTE_CHANGED_ACTION.equals(intent.getAction())
                 || (AudioManager.VOLUME_CHANGED_ACTION.equals(intent.getAction()))) {
             int streamType = intent.getIntExtra(AudioManager.EXTRA_VOLUME_STREAM_TYPE, -1);
