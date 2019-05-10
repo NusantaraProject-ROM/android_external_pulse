@@ -20,8 +20,10 @@ import android.graphics.drawable.Drawable;
 import android.view.View;
 
 import com.android.internal.utils.ActionUtils;
+import com.android.systemui.Dependency;
 import com.android.systemui.R;
 import com.android.systemui.navigation.*;
+import com.android.systemui.navigation.pulse.PulseController;
 import com.android.systemui.navigation.smartbar.SmartBarView;
 import com.android.systemui.statusbar.phone.BarTransitions;
 import com.android.systemui.statusbar.phone.LightBarTransitionsController;
@@ -85,7 +87,7 @@ public final class SmartBarTransitions extends BarTransitions {
         mLightsOut = lightsOut;
 
         final View navButtons = mView.getCurrentView().findViewWithTag(Res.Common.NAV_BUTTONS);
-        final boolean isBarPulseFaded = mView.isBarPulseFaded();
+        final boolean isBarPulseFaded = Dependency.get(PulseController.class).shouldDrawPulse();
         final float buttonAlpha = mView.getButtonAlpha();
         final float fadeAlpha = isBarPulseFaded ? mView.mPulseNavButtonsOpacity : buttonAlpha;
 

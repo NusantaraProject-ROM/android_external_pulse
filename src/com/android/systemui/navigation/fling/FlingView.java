@@ -37,7 +37,6 @@ import com.android.systemui.navigation.fling.FlingLogoView;
 import com.android.systemui.navigation.fling.FlingRipple;
 import com.android.systemui.navigation.fling.FlingTrails;
 import com.android.systemui.navigation.fling.FlingView;
-import com.android.systemui.navigation.pulse.PulseController;
 import com.android.systemui.navigation.utils.SmartObserver.SmartObservable;
 import com.android.systemui.statusbar.phone.BarTransitions;
 import com.android.systemui.statusbar.phone.LightBarTransitionsController;
@@ -215,29 +214,18 @@ public class FlingView extends BaseNavigationBar {
     }
 
     @Override
-    public boolean onStartPulse(Animation animatePulseIn) {
+    public void onStartPulse() {
         if (mLogoController.isEnabled()) {
             getLogoView(getHiddenView()).setAlpha(PULSE_LOGO_OPACITY);
             getLogoView(getCurrentView()).animate()
                     .alpha(PULSE_LOGO_OPACITY)
                     .setDuration(PULSE_FADE_OUT_DURATION)
-                    .setListener(new AnimatorListenerAdapter() {
-                        @Override
-                        public void onAnimationEnd(Animator _a) {
-                            // shouldn't be null, mPulse just called into us
-                            if (mPulse != null) {
-                                mPulse.turnOnPulse();
-                            }
-                        }
-                    })
                     .start();
-            return true;
         }
-        return false;
     }
 
     @Override
-    public void onStopPulse(Animation animatePulseOut) {
+    public void onStopPulse() {
         if (mLogoController.isEnabled()) {
             getLogoView(getHiddenView()).setAlpha(mLogoOpacity);
             getLogoView(getCurrentView()).animate()
@@ -334,8 +322,8 @@ public class FlingView extends BaseNavigationBar {
         mLogoOpacity = alphaIntToFloat(Settings.Secure.getIntForUser(getContext().getContentResolver(),
                 Settings.Secure.FLING_LOGO_OPACITY, 255, UserHandle.USER_CURRENT));
         if (mLogoController.isEnabled()) {
-            getLogoView(getCurrentView()).setAlpha(isBarPulseFaded() ? PULSE_LOGO_OPACITY : mLogoOpacity);
-            getLogoView(getHiddenView()).setAlpha(isBarPulseFaded() ? PULSE_LOGO_OPACITY : mLogoOpacity);
+            getLogoView(getCurrentView()).setAlpha(mPulse.shouldDrawPulse() ? PULSE_LOGO_OPACITY : mLogoOpacity);
+            getLogoView(getHiddenView()).setAlpha(mPulse.shouldDrawPulse() ? PULSE_LOGO_OPACITY : mLogoOpacity);
         }
     }
 
@@ -349,14 +337,6 @@ public class FlingView extends BaseNavigationBar {
         setLogoOpacity();
         setDisabledFlags(mDisabledFlags, true /* force */);
         setNavigationIconHints(mNavigationIconHints, true);
-    }
-
-    boolean isBarPulseFaded() {
-        if (mPulse == null) {
-            return false;
-        } else {
-            return mPulse.shouldDrawPulse();
-        }
     }
 
     @Override
@@ -432,20 +412,4 @@ public class FlingView extends BaseNavigationBar {
 
     /*private void unsetListeners() {
     }*/
-
-    @Override
-    public void setMediaPlaying(boolean playing) {
-        PulseController mPulse = getPulseController();
-        if (mPulse != null) {
-            mPulse.setMediaPlaying(playing);
-        }
-    }
-
-    @Override
-    public void setPulseColors(boolean colorizedMedia, int[] colors) {
-        PulseController mPulse = getPulseController();
-        if (mPulse != null) {
-            mPulse.setPulseColors(colorizedMedia, colors);
-        }
-    }
 }

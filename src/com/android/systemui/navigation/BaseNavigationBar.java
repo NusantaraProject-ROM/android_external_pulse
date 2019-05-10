@@ -31,10 +31,11 @@ import com.android.systemui.navigation.Navigator;
 import com.android.systemui.navigation.Res;
 import com.android.systemui.navigation.NavbarOverlayResources;
 import com.android.systemui.navigation.pulse.PulseController;
-import com.android.systemui.navigation.pulse.PulseController.PulseObserver;
+import com.android.systemui.navigation.pulse.PulseController.PulseStateListener;
 import com.android.systemui.navigation.utils.SmartObserver;
 import com.android.systemui.plugins.statusbar.phone.NavGesture;
 import com.android.systemui.statusbar.phone.BarTransitions;
+import com.android.systemui.Dependency;
 import com.android.systemui.R;
 
 import com.android.internal.utils.ActionUtils;
@@ -70,7 +71,7 @@ import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
-public abstract class BaseNavigationBar extends LinearLayout implements Navigator, PulseObserver {
+public abstract class BaseNavigationBar extends LinearLayout implements Navigator, PulseStateListener {
     final static String TAG = "PhoneStatusBar/BaseNavigationBar";
     public final static boolean DEBUG = false;
     public static final boolean NAVBAR_ALWAYS_AT_RIGHT = true;
@@ -164,6 +165,7 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
                 Context.WINDOW_SERVICE);
         mSmartObserver = new SmartObserver(mHandler, context.getContentResolver());
         mSpringSystem = SpringSystem.create();
+        mPulse = Dependency.get(PulseController.class);
         sIsTablet = !ActionUtils.navigationBarCanMove();
     }
 
@@ -196,16 +198,6 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
 
     public void updateNavbarThemedResources(Resources res){
         getBarTransitions().updateResources(mResourceMap);
-    }
-
-    @Override
-    public void setControllers(PulseController pulseController) {
-        mPulse = pulseController;
-        mPulse.setPulseObserver(this);
-    }
-
-    protected PulseController getPulseController()  {
-        return mPulse;
     }
 
     protected static float alphaIntToFloat(int alpha) {
@@ -311,9 +303,6 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
     public void setLeftInLandscape(boolean leftInLandscape) {
         if (mLeftInLandscape != leftInLandscape) {
             mLeftInLandscape = leftInLandscape;
-            if (mPulse != null) {
-                mPulse.setLeftInLandscape(leftInLandscape);
-            }
         }
     }
 
@@ -321,9 +310,6 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
     public final void setKeyguardShowing(boolean showing) {
         if (mKeyguardShowing != showing) {
             mKeyguardShowing = showing;
-            if (mPulse != null) {
-                mPulse.setKeyguardShowing(showing);
-            }
             onKeyguardShowing(showing);
         }
     }
@@ -373,9 +359,6 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
 
     public final void dispose() {
         mSmartObserver.cleanUp();
-        if (mPulse != null) {
-            mPulse.doUnlinkVisualizer();
-        }
         flushSpringSystem();
         onDispose();
     }
@@ -536,11 +519,6 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
     }
 
     @Override
-    protected void onAttachedToWindow() {
-        super.onAttachedToWindow();
-    }
-
-    @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         if (DEBUG) Log.d(TAG, String.format(
                     "onSizeChanged: (%dx%d) old: (%dx%d)", w, h, oldw, oldh));
@@ -553,19 +531,26 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
             notifyVerticalChangedListener(newVertical);
         }
         postCheckForInvalidLayout("sizeChanged");
-        if (mPulse != null) {
-            mPulse.onSizeChanged(w, h, oldw, oldh);
-        }
         super.onSizeChanged(w, h, oldw, oldh);
     }
 
     @Override
-    public void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
-        if (mPulse != null) {
-            mPulse.onDraw(canvas);
-        }
+    protected void onAttachedToWindow() {
+        mPulse.addStateListener(this);
+        super.onAttachedToWindow();
     }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        mPulse.removeStateListener(this);
+        super.onDetachedFromWindow();
+    }
+
+    @Override
+    public void onStartPulse() {}
+
+    @Override
+    public void onStopPulse() {}
 
     @Override
     public Handler getHandler() {

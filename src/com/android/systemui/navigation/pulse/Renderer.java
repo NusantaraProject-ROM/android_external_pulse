@@ -21,8 +21,6 @@
 
 package com.android.systemui.navigation.pulse;
 
-import com.android.systemui.navigation.pulse.PulseController.PulseObserver;
-
 import android.content.Context;
 import android.graphics.Canvas;
 import android.os.Handler;
@@ -30,7 +28,7 @@ import android.os.Handler;
 public abstract class Renderer implements VisualizerStreamHandler.Listener {
     protected Context mContext;
     protected Handler mHandler;
-    protected PulseObserver mCallback;
+    protected PulseView mView;
 
     private static final long ANIM_FPS_MAX = 40;
     private static final long ANIM_FPS_TO_MILLIS = 1000 / ANIM_FPS_MAX;
@@ -38,10 +36,10 @@ public abstract class Renderer implements VisualizerStreamHandler.Listener {
     private long mRenderCounter;
     private long mCurrentCounter;
 
-    public Renderer(Context context, Handler handler, PulseObserver callback) {
+    public Renderer(Context context, Handler handler, PulseView view) {
         mContext = context;
         mHandler = handler;
-        mCallback = callback;
+        mView = view;
         mRenderCounter = System.currentTimeMillis();
     }
 
@@ -50,7 +48,7 @@ public abstract class Renderer implements VisualizerStreamHandler.Listener {
         mCurrentCounter = mCurrentTime - mRenderCounter;
         if (mCurrentCounter >= ANIM_FPS_TO_MILLIS) {
             mRenderCounter = mCurrentTime;
-            mCallback.postInvalidate();
+            mView.postInvalidate();
         }
     }
 

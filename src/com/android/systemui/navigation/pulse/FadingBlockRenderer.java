@@ -36,7 +36,6 @@ import android.util.TypedValue;
 
 import com.android.internal.util.NotificationColorUtil;
 import com.android.systemui.R;
-import com.android.systemui.navigation.pulse.PulseController.PulseObserver;
 import com.android.systemui.navigation.utils.ColorAnimator;
 
 public class FadingBlockRenderer extends Renderer implements ColorAnimator.ColorAnimationListener {
@@ -71,9 +70,9 @@ public class FadingBlockRenderer extends Renderer implements ColorAnimator.Color
 
     private PulseController mController;
 
-    public FadingBlockRenderer(Context context, Handler handler, PulseObserver callback,
+    public FadingBlockRenderer(Context context, Handler handler, PulseView view,
             PulseController controller) {
-        super(context, handler, callback);
+        super(context, handler, view);
         mController = controller;
         mObserver = new LegacySettingsObserver(handler);
         mLavaLamp = new ColorAnimator();
@@ -136,9 +135,9 @@ public class FadingBlockRenderer extends Renderer implements ColorAnimator.Color
 
     @Override
     public void onSizeChanged(int w, int h, int oldw, int oldh) {
-        if (mCallback.getWidth() > 0 && mCallback.getHeight() > 0) {
-            mWidth = mCallback.getWidth();
-            mHeight = mCallback.getHeight();
+        if (mView.getWidth() > 0 && mView.getHeight() > 0) {
+            mWidth = mView.getWidth();
+            mHeight = mView.getHeight();
             mVertical = mHeight > mWidth;
             mCanvasBitmap = Bitmap.createBitmap(mWidth, mHeight, Config.ARGB_8888);
             mCanvas = new Canvas(mCanvasBitmap);

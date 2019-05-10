@@ -37,7 +37,6 @@ import android.os.UserHandle;
 import android.provider.Settings;
 
 import com.android.internal.util.NotificationColorUtil;
-import com.android.systemui.navigation.pulse.PulseController.PulseObserver;
 import com.android.systemui.navigation.utils.ColorAnimator;
 
 public class SolidLineRenderer extends Renderer implements ColorAnimator.ColorAnimationListener {
@@ -64,9 +63,9 @@ public class SolidLineRenderer extends Renderer implements ColorAnimator.ColorAn
 
     private PulseController mController;
 
-    public SolidLineRenderer(Context context, Handler handler, PulseObserver callback,
+    public SolidLineRenderer(Context context, Handler handler, PulseView view,
             PulseController controller) {
-        super(context, handler, callback);
+        super(context, handler, view);
         mController = controller;
         mColor = Color.TRANSPARENT;
         mLavaLamp = new ColorAnimator();
@@ -144,9 +143,9 @@ public class SolidLineRenderer extends Renderer implements ColorAnimator.ColorAn
 
     @Override
     public void onSizeChanged(int w, int h, int oldw, int oldh) {
-        if (mCallback.getWidth() > 0 && mCallback.getHeight() > 0) {
-            mWidth = mCallback.getWidth();
-            mHeight = mCallback.getHeight();
+        if (mView.getWidth() > 0 && mView.getHeight() > 0) {
+            mWidth = mView.getWidth();
+            mHeight = mView.getHeight();
             mVertical = mHeight > mWidth;
             loadValueAnimators();
             if (mVertical) {
