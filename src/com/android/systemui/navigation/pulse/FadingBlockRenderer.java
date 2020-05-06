@@ -35,8 +35,8 @@ import android.provider.Settings;
 import android.util.TypedValue;
 
 import com.android.internal.util.NotificationColorUtil;
+import com.android.systemui.navigation.pulse.*;
 import com.android.systemui.R;
-import com.android.systemui.navigation.utils.ColorAnimator;
 
 public class FadingBlockRenderer extends Renderer implements ColorAnimator.ColorAnimationListener {
     //private static final int DEF_PAINT_ALPHA = (byte) 188;
