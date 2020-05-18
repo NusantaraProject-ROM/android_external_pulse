@@ -29,6 +29,8 @@ public abstract class Renderer implements VisualizerStreamHandler.Listener {
     protected Context mContext;
     protected Handler mHandler;
     protected PulseView mView;
+    protected ColorController mColorController;
+    protected boolean mIsValidStream;
 
     private static final long ANIM_FPS_MAX = 40;
     private static final long ANIM_FPS_TO_MILLIS = 1000 / ANIM_FPS_MAX;
@@ -36,10 +38,11 @@ public abstract class Renderer implements VisualizerStreamHandler.Listener {
     private long mRenderCounter;
     private long mCurrentCounter;
 
-    public Renderer(Context context, Handler handler, PulseView view) {
+    public Renderer(Context context, Handler handler, PulseView view, ColorController colorController) {
         mContext = context;
         mHandler = handler;
         mView = view;
+        mColorController = colorController;
         mRenderCounter = System.currentTimeMillis();
     }
 
@@ -68,5 +71,7 @@ public abstract class Renderer implements VisualizerStreamHandler.Listener {
 
     public void onSizeChanged(int w, int h, int oldw, int oldh) {}
 
-    public void setColors(boolean colorizedMedia, int[] colors) {}
+    public void onUpdateColor(int color) {}
+
+    public boolean isValidStream() { return mIsValidStream; }
 }

@@ -24,24 +24,25 @@
 
 package com.android.systemui.navigation.pulse;
 
+import static com.android.systemui.Dependency.MAIN_HANDLER_NAME;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import com.android.systemui.Dependency;
-import com.android.systemui.SysUiServiceProvider;
-import com.android.systemui.navigation.pulse.PulseController;
 
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.res.Configuration;
 import android.database.ContentObserver;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.media.AudioManager;
 import android.media.IAudioService;
+import android.media.MediaMetadata;
+import android.media.session.PlaybackState;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.IBinder;
@@ -56,21 +57,27 @@ import android.view.View;
 import android.view.animation.Animation;
 import android.widget.FrameLayout;
 
+import com.android.systemui.Dependency;
+import com.android.systemui.SysUiServiceProvider;
 import com.android.systemui.statusbar.CommandQueue;
-import com.android.systemui.statusbar.NotificationMediaManager;
 import com.android.systemui.statusbar.CommandQueue.Callbacks;
-import com.android.systemui.statusbar.phone.StatusBar;
+import com.android.systemui.statusbar.policy.ConfigurationController;
 import com.android.systemui.statusbar.policy.KeyguardMonitor;
+import com.android.systemui.statusbar.policy.PulseController;
+import com.android.systemui.statusbar.policy.PulseController.PulseStateListener;
 
-public class PulseController implements CommandQueue.Callbacks, KeyguardMonitor.Callback, NotificationMediaManager.MediaUpdateListener {
-    public interface PulseStateListener {
-        public void onStartPulse();
-        public void onStopPulse();
-    }
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
+@Singleton
+public class PulseControllerImpl
+        implements PulseController, CommandQueue.Callbacks, KeyguardMonitor.Callback,
+        ConfigurationController.ConfigurationListener {
 
     public static final boolean DEBUG = false;
 
-    private static final String TAG = PulseController.class.getSimpleName();
+    private static final String TAG = PulseControllerImpl.class.getSimpleName();
     private static final int RENDER_STYLE_LEGACY = 0;
     private static final int RENDER_STYLE_CM = 1;
 
@@ -79,12 +86,11 @@ public class PulseController implements CommandQueue.Callbacks, KeyguardMonitor.
     private AudioManager mAudioManager;
     private Renderer mRenderer;
     private VisualizerStreamHandler mStreamHandler;
+    private ColorController mColorController;
     private final List<PulseStateListener> mStateListeners = new ArrayList<>();
     private SettingsObserver mSettingsObserver;
     private KeyguardMonitor mKeyguardMonitor;
-    private Bitmap mAlbumArt;
     private PulseView mPulseView;
-    private int mAlbumArtColor = -1;
     private int mPulseStyle;
 
     // Pulse state
@@ -173,19 +179,19 @@ public class PulseController implements CommandQueue.Callbacks, KeyguardMonitor.
 
         void register() {
             mContext.getContentResolver().registerContentObserver(
-                    Settings.Secure.getUriFor(Settings.Secure.FLING_PULSE_ENABLED), false, this,
+                    Settings.System.getUriFor(Settings.System.PULSE_ENABLED), false, this,
                     UserHandle.USER_ALL);
             mContext.getContentResolver().registerContentObserver(
-                    Settings.Secure.getUriFor(Settings.Secure.PULSE_RENDER_STYLE_URI), false, this,
+                    Settings.System.getUriFor(Settings.System.PULSE_RENDER_STYLE_URI), false, this,
                     UserHandle.USER_ALL);
         }
 
         @Override
         public void onChange(boolean selfChange, Uri uri) {
-            if (uri.equals(Settings.Secure.getUriFor(Settings.Secure.FLING_PULSE_ENABLED))) {
+            if (uri.equals(Settings.System.getUriFor(Settings.System.PULSE_ENABLED))) {
                 updateEnabled();
                 doLinkage();
-            } else if (uri.equals(Settings.Secure.getUriFor(Settings.Secure.PULSE_RENDER_STYLE_URI))) {
+            } else if (uri.equals(Settings.System.getUriFor(Settings.System.PULSE_RENDER_STYLE_URI))) {
                 updateRenderMode();
                 loadRenderer();
             }
@@ -197,17 +203,18 @@ public class PulseController implements CommandQueue.Callbacks, KeyguardMonitor.
         }
 
         void updateEnabled() {
-            mPulseEnabled = Settings.Secure.getIntForUser(mContext.getContentResolver(),
-                    Settings.Secure.FLING_PULSE_ENABLED, 0, UserHandle.USER_CURRENT) == 1;
+            mPulseEnabled = Settings.System.getIntForUser(mContext.getContentResolver(),
+                    Settings.System.PULSE_ENABLED, 0, UserHandle.USER_CURRENT) == 1;
         }
 
         void updateRenderMode() {
-            mPulseStyle = Settings.Secure.getIntForUser(mContext.getContentResolver(),
-                    Settings.Secure.PULSE_RENDER_STYLE_URI, RENDER_STYLE_CM, UserHandle.USER_CURRENT);
+            mPulseStyle = Settings.System.getIntForUser(mContext.getContentResolver(),
+                    Settings.System.PULSE_RENDER_STYLE_URI, RENDER_STYLE_CM, UserHandle.USER_CURRENT);
         }
     };
 
-    public PulseController(Context context, Handler handler) {
+    @Inject
+    public PulseControllerImpl(Context context, @Named(MAIN_HANDLER_NAME) Handler handler) {
         mContext = context;
         mHandler = handler;
         mSettingsObserver = new SettingsObserver(handler);
@@ -219,8 +226,9 @@ public class PulseController implements CommandQueue.Callbacks, KeyguardMonitor.
         mSettingsObserver.register();
         mStreamHandler = new VisualizerStreamHandler(mContext, this, mStreamListener);
         mPulseView = new PulseView(context, this);
+        mColorController = new ColorController(mContext, mHandler);
         loadRenderer();
-        SysUiServiceProvider.getComponent(context, CommandQueue.class).addCallbacks(this);
+        SysUiServiceProvider.getComponent(context, CommandQueue.class).addCallback(this);
         mKeyguardMonitor = Dependency.get(KeyguardMonitor.class);
         mKeyguardMonitor.addCallback(this);
         IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_OFF);
@@ -231,6 +239,7 @@ public class PulseController implements CommandQueue.Callbacks, KeyguardMonitor.
         context.registerReceiverAsUser(mBroadcastReceiver, UserHandle.ALL, filter, null, null);
     }
 
+    @Override
     public void attachPulseTo(FrameLayout parent) {
         View v = parent.findViewWithTag(PulseView.TAG);
         if (v == null) {
@@ -241,6 +250,7 @@ public class PulseController implements CommandQueue.Callbacks, KeyguardMonitor.
         }
     }
 
+    @Override
     public void detachPulseFrom(FrameLayout parent) {
         View v = parent.findViewWithTag(PulseView.TAG);
         if (v != null) {
@@ -251,14 +261,16 @@ public class PulseController implements CommandQueue.Callbacks, KeyguardMonitor.
         }
     }
 
-    public void addStateListener(PulseStateListener listener) {
+    @Override
+    public void addCallback(PulseStateListener listener) {
         mStateListeners.add(listener);
         if (shouldDrawPulse()) {
-            listener.onStartPulse();
+            listener.onPulseStateChanged(true);
         }
     }
 
-    public void removeStateListener(PulseStateListener listener) {
+    @Override
+    public void removeCallback(PulseStateListener listener) {
         mStateListeners.remove(listener);
     }
 
@@ -266,9 +278,9 @@ public class PulseController implements CommandQueue.Callbacks, KeyguardMonitor.
         for (PulseStateListener listener : mStateListeners) {
             if (listener != null) {
                 if (isStarting) {
-                    listener.onStartPulse();
+                    listener.onPulseStateChanged(true);
                 } else {
-                    listener.onStopPulse();
+                    listener.onPulseStateChanged(false);
                 }
             }
         }
@@ -284,6 +296,7 @@ public class PulseController implements CommandQueue.Callbacks, KeyguardMonitor.
             mRenderer = null;
         }
         mRenderer = getRenderer();
+        mColorController.setRenderer(mRenderer);
         mRenderer.setLeftInLandscape(mLeftInLandscape);
         if (isRendering) {
             mRenderer.onStreamAnalyzed(true);
@@ -313,12 +326,6 @@ public class PulseController implements CommandQueue.Callbacks, KeyguardMonitor.
         }
     }
 
-    public void onSizeChanged(int w, int h, int oldw, int oldh) {
-        if (mRenderer != null) {
-            mRenderer.onSizeChanged(w, h, oldw, oldh);
-        }
-    }
-
     /**
      * Current rendering state: There is a visualizer link and the fft stream is validated
      *
@@ -328,37 +335,33 @@ public class PulseController implements CommandQueue.Callbacks, KeyguardMonitor.
         return mLinked && mStreamHandler.isValidStream() && mRenderer != null;
     }
 
-    private void turnOnPulse() {
-        if (mPulseEnabled && shouldDrawPulse()) {
-            mStreamHandler.resume(); // let bytes hit visualizer
-        }
-    }
-
     public void onDraw(Canvas canvas) {
         if (mPulseEnabled && shouldDrawPulse()) {
             mRenderer.draw(canvas);
         }
     }
 
-    private Renderer getRenderer() {
-        switch (mPulseStyle) {
-            case RENDER_STYLE_LEGACY:
-                return new FadingBlockRenderer(mContext, mHandler, mPulseView, this);
-            case RENDER_STYLE_CM:
-                return new SolidLineRenderer(mContext, mHandler, mPulseView, this);
-            default:
-                return new FadingBlockRenderer(mContext, mHandler, mPulseView, this);
+    private void turnOnPulse() {
+        if (mPulseEnabled && shouldDrawPulse()) {
+            mStreamHandler.resume(); // let bytes hit visualizer
         }
     }
 
-    //TODO: get rid of this
-    public void setLastColor(int color) {
-        mAlbumArtColor = color;
+    void onSizeChanged(int w, int h, int oldw, int oldh) {
+        if (mRenderer != null) {
+            mRenderer.onSizeChanged(w, h, oldw, oldh);
+        }
     }
 
-    //TODO: get rid of this
-    public int getAlbumArtColor() {
-        return mAlbumArtColor;
+    private Renderer getRenderer() {
+        switch (mPulseStyle) {
+            case RENDER_STYLE_LEGACY:
+                return new FadingBlockRenderer(mContext, mHandler, mPulseView, this, mColorController);
+            case RENDER_STYLE_CM:
+                return new SolidLineRenderer(mContext, mHandler, mPulseView, this, mColorController);
+            default:
+                return new FadingBlockRenderer(mContext, mHandler, mPulseView, this, mColorController);
+        }
     }
 
     private boolean isMusicMuted(int streamType) {
@@ -477,17 +480,11 @@ public class PulseController implements CommandQueue.Callbacks, KeyguardMonitor.
     }
 
     @Override
-    public void onMediaUpdated(boolean playing) {
-        if (mIsMediaPlaying != playing) {
-            mIsMediaPlaying = playing;
+    public void onMetadataOrStateChanged(MediaMetadata metadata, @PlaybackState.State int state) {
+        boolean isPlaying = state == PlaybackState.STATE_PLAYING;
+        if (mIsMediaPlaying != isPlaying) {
+            mIsMediaPlaying = isPlaying;
             doLinkage();
-        }
-    }
-
-    @Override
-    public void setPulseColors(boolean colorizedMedia, int[] colors) {
-        if (mRenderer != null) {
-            mRenderer.setColors(colorizedMedia, colors);
         }
     }
 

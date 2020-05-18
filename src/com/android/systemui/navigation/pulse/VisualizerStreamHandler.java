@@ -57,7 +57,7 @@ public class VisualizerStreamHandler {
     protected boolean mIsPaused;
 
     protected Context mContext;
-    protected PulseController mController;
+    protected PulseControllerImpl mController;
     protected Listener mListener;
 
     private Handler mHandler = new Handler() {
@@ -80,7 +80,7 @@ public class VisualizerStreamHandler {
         }
     };
 
-    public VisualizerStreamHandler(Context context, PulseController controller,
+    public VisualizerStreamHandler(Context context, PulseControllerImpl controller,
             VisualizerStreamHandler.Listener listener) {
         mContext = context;
         mController = controller;

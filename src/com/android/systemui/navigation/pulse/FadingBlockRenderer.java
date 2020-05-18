@@ -34,12 +34,9 @@ import android.os.UserHandle;
 import android.provider.Settings;
 import android.util.TypedValue;
 
-import com.android.internal.util.NotificationColorUtil;
-import com.android.systemui.navigation.pulse.*;
-import com.android.systemui.R;
-
-public class FadingBlockRenderer extends Renderer implements ColorAnimator.ColorAnimationListener {
+public class FadingBlockRenderer extends Renderer {
     //private static final int DEF_PAINT_ALPHA = (byte) 188;
+    private static final int DBFUZZ = 2;
     private byte[] mFFTBytes;
     private Paint mPaint;
     private Paint mFadePaint;
@@ -51,12 +48,7 @@ public class FadingBlockRenderer extends Renderer implements ColorAnimator.Color
     private int dbValue;
     private float magnitude;
     private int mDivisions;
-    private int mAccentColor;
-    private int mUserColor;
-    private int mAlbumColor = -1;
-    private boolean mAutoColor;
     private int mDbFuzzFactor;
-    private int mDbFuzz;
     private int mPathEffect1;
     private int mPathEffect2;
     private Bitmap mCanvasBitmap;
@@ -65,28 +57,18 @@ public class FadingBlockRenderer extends Renderer implements ColorAnimator.Color
     private int mWidth;
     private int mHeight;
 
-    private ColorAnimator mLavaLamp;
     private LegacySettingsObserver mObserver;
-    private boolean mPulseAccentColorEnabled;
-    private boolean mLavaLampEnabled;
-    private boolean mIsValidStream;
     private boolean mSmoothingEnabled;
 
-    private PulseController mController;
-
     public FadingBlockRenderer(Context context, Handler handler, PulseView view,
-            PulseController controller) {
-        super(context, handler, view);
-        mController = controller;
+            PulseControllerImpl controller, ColorController colorController) {
+        super(context, handler, view, colorController);
         mObserver = new LegacySettingsObserver(handler);
-        mLavaLamp = new ColorAnimator();
-        mLavaLamp.setColorAnimatorListener(this);
         mPaint = new Paint();
         mFadePaint = new Paint();
         mFadePaint.setColor(Color.argb(200, 255, 255, 255));
         mFadePaint.setXfermode(new PorterDuffXfermode(Mode.MULTIPLY));
         mMatrix = new Matrix();
-        mDbFuzz = mContext.getResources().getInteger(R.integer.config_pulseDbFuzz);
         mObserver.updateSettings();
         mPaint.setAntiAlias(true);
         onSizeChanged(0, 0, 0, 0);
@@ -97,9 +79,7 @@ public class FadingBlockRenderer extends Renderer implements ColorAnimator.Color
         mIsValidStream = isValid;
         if (isValid) {
             onSizeChanged(0, 0, 0, 0);
-            if (mLavaLampEnabled  && !mPulseAccentColorEnabled) {
-                mLavaLamp.start();
-            }
+            mColorController.startLavaLamp();
         }
     }
 
@@ -135,11 +115,11 @@ public class FadingBlockRenderer extends Renderer implements ColorAnimator.Color
                 }
                 if (mVertical) {
                     mFFTPoints[i * 4] = mLeftInLandscape ? 0 : mWidth;
-                    mFFTPoints[i * 4 + 2] = mLeftInLandscape ? (dbValue * mDbFuzzFactor + mDbFuzz)
-                            : (mWidth - (dbValue * mDbFuzzFactor + mDbFuzz));
+                    mFFTPoints[i * 4 + 2] = mLeftInLandscape ? (dbValue * mDbFuzzFactor + DBFUZZ)
+                            : (mWidth - (dbValue * mDbFuzzFactor + DBFUZZ));
                 } else {
                     mFFTPoints[i * 4 + 1] = mHeight;
-                    mFFTPoints[i * 4 + 3] = mHeight - (dbValue * mDbFuzzFactor + mDbFuzz);
+                    mFFTPoints[i * 4 + 3] = mHeight - (dbValue * mDbFuzzFactor + DBFUZZ);
                 }
             }
         }
@@ -167,20 +147,6 @@ public class FadingBlockRenderer extends Renderer implements ColorAnimator.Color
     }
 
     @Override
-    public void onColorChanged(ColorAnimator colorAnimator, int color) {
-        mPaint.setColor(mPulseAccentColorEnabled ? mAccentColor : color);
-    }
-
-    @Override
-    public void onStartAnimation(ColorAnimator colorAnimator, int firstColor) {
-    }
-
-    @Override
-    public void onStopAnimation(ColorAnimator colorAnimator, int lastColor) {
-        mPaint.setColor(mAutoColor && mAlbumColor != -1 ? mAlbumColor : (mPulseAccentColorEnabled ? mAccentColor : mUserColor));
-    }
-
-    @Override
     public void setLeftInLandscape(boolean leftInLandscape) {
         if (mLeftInLandscape != leftInLandscape) {
             mLeftInLandscape = leftInLandscape;
@@ -191,15 +157,20 @@ public class FadingBlockRenderer extends Renderer implements ColorAnimator.Color
     @Override
     public void destroy() {
         mContext.getContentResolver().unregisterContentObserver(mObserver);
-        mLavaLamp.stop();
+        mColorController.stopLavaLamp();
         mCanvasBitmap = null;
     }
 
     @Override
     public void onVisualizerLinkChanged(boolean linked) {
         if (!linked) {
-            mLavaLamp.stop();
+            mColorController.stopLavaLamp();
         }
+    }
+
+    @Override
+    public void onUpdateColor(int color) {
+        mPaint.setColor(color);
     }
 
     @Override
@@ -222,43 +193,24 @@ public class FadingBlockRenderer extends Renderer implements ColorAnimator.Color
         void register() {
             ContentResolver resolver = mContext.getContentResolver();
             resolver.registerContentObserver(
-                    Settings.Secure.getUriFor(Settings.Secure.PULSE_ACCENT_COLOR_ENABLED), false,
+                    Settings.System.getUriFor(Settings.System.PULSE_CUSTOM_DIMEN), false, this,
+                    UserHandle.USER_ALL);
+            resolver.registerContentObserver(
+                    Settings.System.getUriFor(Settings.System.PULSE_CUSTOM_DIV), false, this,
+                    UserHandle.USER_ALL);
+            resolver.registerContentObserver(
+                    Settings.System.getUriFor(Settings.System.PULSE_FILLED_BLOCK_SIZE), false,
                     this,
                     UserHandle.USER_ALL);
             resolver.registerContentObserver(
-                    Settings.Secure.getUriFor(Settings.Secure.FLING_PULSE_COLOR), false, this,
+                    Settings.System.getUriFor(Settings.System.PULSE_EMPTY_BLOCK_SIZE), false, this,
                     UserHandle.USER_ALL);
             resolver.registerContentObserver(
-                    Settings.Secure.getUriFor(Settings.Secure.FLING_PULSE_LAVALAMP_ENABLED), false,
+                    Settings.System.getUriFor(Settings.System.PULSE_CUSTOM_FUDGE_FACTOR), false,
                     this,
                     UserHandle.USER_ALL);
             resolver.registerContentObserver(
-                    Settings.Secure.getUriFor(Settings.Secure.FLING_PULSE_LAVALAMP_SPEED), false,
-                    this,
-                    UserHandle.USER_ALL);
-            resolver.registerContentObserver(
-                    Settings.Secure.getUriFor(Settings.Secure.PULSE_CUSTOM_DIMEN), false, this,
-                    UserHandle.USER_ALL);
-            resolver.registerContentObserver(
-                    Settings.Secure.getUriFor(Settings.Secure.PULSE_CUSTOM_DIV), false, this,
-                    UserHandle.USER_ALL);
-            resolver.registerContentObserver(
-                    Settings.Secure.getUriFor(Settings.Secure.PULSE_FILLED_BLOCK_SIZE), false,
-                    this,
-                    UserHandle.USER_ALL);
-            resolver.registerContentObserver(
-                    Settings.Secure.getUriFor(Settings.Secure.PULSE_EMPTY_BLOCK_SIZE), false, this,
-                    UserHandle.USER_ALL);
-            resolver.registerContentObserver(
-                    Settings.Secure.getUriFor(Settings.Secure.PULSE_CUSTOM_FUDGE_FACTOR), false,
-                    this,
-                    UserHandle.USER_ALL);
-            resolver.registerContentObserver(
-                    Settings.Secure.getUriFor(Settings.Secure.PULSE_AUTO_COLOR), false,
-                    this,
-                    UserHandle.USER_ALL);
-            resolver.registerContentObserver(
-                    Settings.Secure.getUriFor(Settings.Secure.FLING_PULSE_SMOOTHING_ENABLED), false,
+                    Settings.System.getUriFor(Settings.System.PULSE_SMOOTHING_ENABLED), false,
                     this,
                     UserHandle.USER_ALL);
         }
@@ -272,53 +224,20 @@ public class FadingBlockRenderer extends Renderer implements ColorAnimator.Color
             ContentResolver resolver = mContext.getContentResolver();
             final Resources res = mContext.getResources();
 
-            mAutoColor = Settings.Secure.getIntForUser(
-                    resolver, Settings.Secure.PULSE_AUTO_COLOR, 0,
-                    UserHandle.USER_CURRENT) == 1;
-
-            mPulseAccentColorEnabled = Settings.Secure.getIntForUser(resolver,
-                    Settings.Secure.PULSE_ACCENT_COLOR_ENABLED, 0, UserHandle.USER_CURRENT) == 1;
-
-            mLavaLampEnabled = !mAutoColor && Settings.Secure.getIntForUser(resolver,
-                    Settings.Secure.FLING_PULSE_LAVALAMP_ENABLED, 1, UserHandle.USER_CURRENT) == 1;
-
-            mUserColor = Settings.Secure.getIntForUser(resolver,
-                    Settings.Secure.FLING_PULSE_COLOR,
-                    mContext.getResources().getColor(R.color.config_pulseFillColor),
+            int emptyBlock = Settings.System.getIntForUser(
+                    resolver, Settings.System.PULSE_EMPTY_BLOCK_SIZE, 1,
                     UserHandle.USER_CURRENT);
-            mAccentColor = mContext.getResources().getColor(R.color.pulseAccentColor);
-
-            if (mPulseAccentColorEnabled) {
-                mPaint.setColor(mAccentColor);
-            }
-
-            if (!mLavaLampEnabled && !mPulseAccentColorEnabled) {
-                int lastColor = mController.getAlbumArtColor();
-                mPaint.setColor(mAutoColor && lastColor != -1 ? lastColor : mUserColor);
-            }
-            int time = Settings.Secure.getIntForUser(resolver,
-                    Settings.Secure.FLING_PULSE_LAVALAMP_SPEED, 10000,
+            int customDimen = Settings.System.getIntForUser(
+                    resolver, Settings.System.PULSE_CUSTOM_DIMEN, 14,
                     UserHandle.USER_CURRENT);
-            mLavaLamp.setAnimationTime(time);
-            if (mLavaLampEnabled && mIsValidStream && !mPulseAccentColorEnabled) {
-                mLavaLamp.start();
-            } else {
-                mLavaLamp.stop();
-            }
-            int emptyBlock = Settings.Secure.getIntForUser(
-                    resolver, Settings.Secure.PULSE_EMPTY_BLOCK_SIZE, 1,
+            int numDivision = Settings.System.getIntForUser(
+                    resolver, Settings.System.PULSE_CUSTOM_DIV, 16,
                     UserHandle.USER_CURRENT);
-            int customDimen = Settings.Secure.getIntForUser(
-                    resolver, Settings.Secure.PULSE_CUSTOM_DIMEN, 14,
+            int fudgeFactor = Settings.System.getIntForUser(
+                    resolver, Settings.System.PULSE_CUSTOM_FUDGE_FACTOR, 4,
                     UserHandle.USER_CURRENT);
-            int numDivision = Settings.Secure.getIntForUser(
-                    resolver, Settings.Secure.PULSE_CUSTOM_DIV, 16,
-                    UserHandle.USER_CURRENT);
-            int fudgeFactor = Settings.Secure.getIntForUser(
-                    resolver, Settings.Secure.PULSE_CUSTOM_FUDGE_FACTOR, 4,
-                    UserHandle.USER_CURRENT);
-            int filledBlock = Settings.Secure.getIntForUser(
-                    resolver, Settings.Secure.PULSE_FILLED_BLOCK_SIZE, 4,
+            int filledBlock = Settings.System.getIntForUser(
+                    resolver, Settings.System.PULSE_FILLED_BLOCK_SIZE, 4,
                     UserHandle.USER_CURRENT);
 
             mPathEffect1 = getLimitedDimenValue(filledBlock, 4, 8, res);
@@ -332,8 +251,8 @@ public class FadingBlockRenderer extends Renderer implements ColorAnimator.Color
             mDivisions = validateDivision(numDivision);
             mDbFuzzFactor = Math.max(2, Math.min(6, fudgeFactor));
 
-            mSmoothingEnabled = Settings.Secure.getIntForUser(resolver,
-                    Settings.Secure.FLING_PULSE_SMOOTHING_ENABLED, 0, UserHandle.USER_CURRENT) == 1;
+            mSmoothingEnabled = Settings.System.getIntForUser(resolver,
+                    Settings.System.PULSE_SMOOTHING_ENABLED, 0, UserHandle.USER_CURRENT) == 1;
         }
     }
 
@@ -349,20 +268,5 @@ public class FadingBlockRenderer extends Renderer implements ColorAnimator.Color
             val = 16;
         }
         return Math.max(2, Math.min(44, val));
-    }
-
-    public void setColors(boolean colorizedMedia, int[] colors) {
-        if (colorizedMedia) {
-            // be sure the color will always have an acceptable contrast against black navbar
-            mAlbumColor = NotificationColorUtil.findContrastColorAgainstDark(colors[0], 0x000000, true, 2);
-            // now be sure the color will always have an acceptable contrast against white navbar
-            mAlbumColor = NotificationColorUtil.findContrastColor(mAlbumColor, 0xffffff, true, 2);
-        } else {
-            mAlbumColor = -1;
-        }
-        if (mAutoColor && !mLavaLampEnabled) {
-            mPaint.setColor(mAlbumColor != -1 ? mAlbumColor : mUserColor);
-            mController.setLastColor(mAlbumColor);
-        }
     }
 }

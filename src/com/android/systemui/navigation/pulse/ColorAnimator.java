@@ -26,9 +26,9 @@ import android.graphics.Color;
 
 public class ColorAnimator implements ValueAnimator.AnimatorUpdateListener {
     public interface ColorAnimationListener {
-        public void onColorChanged(ColorAnimator colorAnimator, int color);
-        public void onStartAnimation(ColorAnimator colorAnimator, int firstColor);
-        public void onStopAnimation(ColorAnimator colorAnimator, int lastColor);
+        public default void onColorChanged(ColorAnimator colorAnimator, int color) {}
+        public default void onStartAnimation(ColorAnimator colorAnimator, int firstColor) {}
+        public default void onStopAnimation(ColorAnimator colorAnimator, int lastColor) {}
     }
 
     public static final int ANIM_DEF_DURATION = 10 * 1000;

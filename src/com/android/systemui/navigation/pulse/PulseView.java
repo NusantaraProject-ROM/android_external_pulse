@@ -30,9 +30,9 @@ import android.widget.FrameLayout.LayoutParams;
 public class PulseView extends View {
     public static final String TAG = "PulseView";
 
-    private PulseController mPulse;
+    private PulseControllerImpl mPulse;
 
-    public PulseView(Context context, PulseController controller) {
+    public PulseView(Context context, PulseControllerImpl controller) {
         super(context);
         mPulse = controller;
         setLayoutParams(new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
