@@ -489,6 +489,11 @@ public class PulseControllerImpl
     }
 
     @Override
+    public void setMediaNotificationColor(boolean colorizedMedia, int color) {
+        mColorController.setMediaNotificationColor(colorizedMedia, color);
+    }
+
+    @Override
     public String toString() {
         return TAG + " " + getState();
     }
