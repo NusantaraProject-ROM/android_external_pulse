@@ -25,6 +25,7 @@ package com.android.systemui.navigation.pulse;
 import android.content.Context;
 import android.media.audiofx.Visualizer;
 import android.os.Handler;
+//import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 
@@ -63,6 +64,7 @@ public class VisualizerStreamHandler {
     protected Listener mListener;
 
     private final UiOffloadThread mUiOffloadThread;
+    //private final Handler mMainThreadHandler = new Handler(Looper.getMainLooper());
 
     private Handler mHandler = new Handler() {
         @Override
@@ -97,7 +99,8 @@ public class VisualizerStreamHandler {
      * 
      */
     public final void link() {
-        mUiOffloadThread.submit(() -> {
+    	//mMainThreadHandler.post(() -> {
+    	mUiOffloadThread.execute(() -> {
             pause();
             resetAnalyzer();
 

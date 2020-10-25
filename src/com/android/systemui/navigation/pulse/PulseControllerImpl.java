@@ -24,8 +24,6 @@
 
 package com.android.systemui.navigation.pulse;
 
-import static com.android.systemui.Dependency.MAIN_HANDLER_NAME;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -58,7 +56,7 @@ import android.view.animation.Animation;
 import android.widget.FrameLayout;
 
 import com.android.systemui.Dependency;
-import com.android.systemui.SysUiServiceProvider;
+import com.android.systemui.dagger.qualifiers.Main;
 import com.android.systemui.statusbar.CommandQueue;
 import com.android.systemui.statusbar.CommandQueue.Callbacks;
 import com.android.systemui.statusbar.phone.NavigationBarFrame;
@@ -279,11 +277,11 @@ public class PulseControllerImpl
     }
 
     @Inject
-    public PulseControllerImpl(Context context, @Named(MAIN_HANDLER_NAME) Handler handler) {
+    public PulseControllerImpl(Context context, @Main Handler mainHandler) {
         mContext = context;
-        mStatusbar = SysUiServiceProvider.getComponent(context, StatusBar.class);
-        mHandler = handler;
-        mSettingsObserver = new SettingsObserver(handler);
+        mStatusbar = Dependency.get(StatusBar.class);
+        mHandler = mainHandler;
+        mSettingsObserver = new SettingsObserver(mainHandler);
         mSettingsObserver.updateSettings();
         mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
         mMusicStreamMuted = isMusicMuted(AudioManager.STREAM_MUSIC);
@@ -294,7 +292,7 @@ public class PulseControllerImpl
         mPulseView = new PulseView(context, this);
         mColorController = new ColorController(mContext, mHandler);
         loadRenderer();
-        SysUiServiceProvider.getComponent(context, CommandQueue.class).addCallback(this);
+        Dependency.get(CommandQueue.class).addCallback(this);
         IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_OFF);
         filter.addAction(Intent.ACTION_SCREEN_ON);
         filter.addAction(PowerManager.ACTION_POWER_SAVE_MODE_CHANGING);
@@ -543,7 +541,7 @@ public class PulseControllerImpl
     }
 
     @Override
-    public void onMetadataOrStateChanged(MediaMetadata metadata, @PlaybackState.State int state) {
+    public void onPrimaryMetadataOrStateChanged(MediaMetadata metadata, @PlaybackState.State int state) {
         boolean isPlaying = state == PlaybackState.STATE_PLAYING;
         if (mIsMediaPlaying != isPlaying) {
             mIsMediaPlaying = isPlaying;
