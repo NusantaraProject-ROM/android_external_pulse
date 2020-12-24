@@ -25,12 +25,13 @@ package com.android.systemui.navigation.pulse;
 import android.content.Context;
 import android.media.audiofx.Visualizer;
 import android.os.Handler;
-//import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 
 import com.android.systemui.Dependency;
-import com.android.systemui.UiOffloadThread;
+import com.android.systemui.dagger.qualifiers.Background;
+
+import java.util.concurrent.Executor;
 
 public class VisualizerStreamHandler {
     public interface Listener {
@@ -63,8 +64,7 @@ public class VisualizerStreamHandler {
     protected PulseControllerImpl mController;
     protected Listener mListener;
 
-    private final UiOffloadThread mUiOffloadThread;
-    //private final Handler mMainThreadHandler = new Handler(Looper.getMainLooper());
+    private final Executor mUiBgExecutor;
 
     private Handler mHandler = new Handler() {
         @Override
@@ -87,11 +87,11 @@ public class VisualizerStreamHandler {
     };
 
     public VisualizerStreamHandler(Context context, PulseControllerImpl controller,
-            VisualizerStreamHandler.Listener listener) {
+            VisualizerStreamHandler.Listener listener, @Background Executor backgroundExecutor) {
         mContext = context;
         mController = controller;
         mListener = listener;
-        mUiOffloadThread = Dependency.get(UiOffloadThread.class);
+        mUiBgExecutor = backgroundExecutor;
     }
 
     /**
@@ -100,7 +100,7 @@ public class VisualizerStreamHandler {
      */
     public final void link() {
     	//mMainThreadHandler.post(() -> {
-    	mUiOffloadThread.execute(() -> {
+    	mUiBgExecutor.execute(() -> {
             pause();
             resetAnalyzer();
 
