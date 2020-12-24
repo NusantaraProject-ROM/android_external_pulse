@@ -112,6 +112,8 @@ public class PulseControllerImpl
     private boolean mDozing;
     private boolean mKeyguardGoingAway;
 
+    private boolean mRenderLoadedOnce;
+
     private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -294,7 +296,6 @@ public class PulseControllerImpl
         mStreamHandler = new VisualizerStreamHandler(mContext, this, mStreamListener, backgroundExecutor);
         mPulseView = new PulseView(context, this);
         mColorController = new ColorController(mContext, mHandler);
-        loadRenderer();
         Dependency.get(CommandQueue.class).addCallback(this);
         IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_OFF);
         filter.addAction(Intent.ACTION_SCREEN_ON);
@@ -302,6 +303,7 @@ public class PulseControllerImpl
         filter.addAction(AudioManager.STREAM_MUTE_CHANGED_ACTION);
         filter.addAction(AudioManager.VOLUME_CHANGED_ACTION);
         context.registerReceiverAsUser(mBroadcastReceiver, UserHandle.ALL, filter, null, null);
+        //loadRenderer();
     }
 
     @Override
@@ -536,6 +538,10 @@ public class PulseControllerImpl
                 setVisualizerLocked(true);
                 mStreamHandler.link();
                 mLinked = true;
+                if (!mRenderLoadedOnce) {
+                    mRenderLoadedOnce = true;
+                    loadRenderer();
+                }
                 if (mRenderer != null) {
                     mRenderer.onVisualizerLinkChanged(true);
                 }
